@@ -440,6 +440,41 @@ document.getElementById("parcelToggle").addEventListener("change", e => {
   map.setLayoutProperty("parcel-outline", "visibility", visibility);
 });
 document.getElementById("floodToggle").addEventListener("change", e => {
+  document
+  .getElementById("zoningToggle")
+  .addEventListener("change", event => {
+    if (!zoningLoaded) {
+      event.target.checked = false;
+
+      showMapError(
+        "The zoning layer has not finished loading. Wait a moment and try again."
+      );
+
+      return;
+    }
+
+    const visibility = event.target.checked ? "visible" : "none";
+
+    map.setLayoutProperty(
+      "little-rock-zoning-fill",
+      "visibility",
+      visibility
+    );
+
+    map.setLayoutProperty(
+      "little-rock-zoning-outline",
+      "visibility",
+      visibility
+    );
+
+    if (event.target.checked) {
+      map.flyTo({
+        center: [-92.29, 34.74],
+        zoom: 10.5,
+        essential: true
+      });
+    }
+  });
   map.setLayoutProperty("flood-fill", "visibility", e.target.checked ? "visible" : "none");
 });
 document.getElementById("opportunityToggle").addEventListener("change", e => {
