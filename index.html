@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Develop Arkansas: an early land and development intelligence map." />
+  <title>Develop Arkansas</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <link href="styles.css" rel="stylesheet" />
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Develop Arkansas home">
+      <span class="brand-mark">DA</span>
+      <span>
+        <strong>Develop Arkansas</strong>
+        <small>Land intelligence, simplified</small>
+      </span>
+    </a>
+    <button id="aboutButton" class="secondary-button" type="button">About this MVP</button>
+  </header>
+
+  <main class="app-shell">
+    <aside class="sidebar" aria-label="Map tools">
+      <section>
+        <p class="eyebrow">PROPERTY SEARCH</p>
+        <h1>Find development information in one place.</h1>
+        <p class="intro">Search the demonstration records or click a highlighted parcel on the map.</p>
+        <label for="searchInput">Address, parcel ID, owner, or city</label>
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="Try Little Rock or DA-1001" autocomplete="off" />
+          <button id="searchButton" type="button">Search</button>
+        </div>
+        <div id="searchResults" class="search-results" aria-live="polite"></div>
+      </section>
+
+      <section class="layer-section">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MAP LAYERS</p>
+            <h2>Development context</h2>
+          </div>
+        </div>
+        <label class="toggle-row">
+          <span><strong>Demonstration parcels</strong><small>Clickable sample properties</small></span>
+          <input id="parcelToggle" type="checkbox" checked />
+        </label>
+        <label class="toggle-row">
+          <span><strong>Flood-risk overlay</strong><small>Illustrative, not official FEMA data</small></span>
+          <input id="floodToggle" type="checkbox" />
+        </label>
+        <label class="toggle-row">
+          <span><strong>Opportunity areas</strong><small>Illustrative growth areas</small></span>
+          <input id="opportunityToggle" type="checkbox" />
+        </label>
+      </section>
+
+      <section class="status-card">
+        <span class="status-dot"></span>
+        <div>
+          <strong>Phase 1 prototype</strong>
+          <p>Interface and workflow testing only. All parcel records are sample data.</p>
+        </div>
+      </section>
+    </aside>
+
+    <section class="map-wrap" aria-label="Interactive Arkansas development map">
+      <div id="map"></div>
+      <div class="map-hint">Click a highlighted parcel to view its profile</div>
+    </section>
+
+    <aside id="propertyPanel" class="property-panel" aria-label="Property information">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">⌖</div>
+        <h2>Select a property</h2>
+        <p>Click a demonstration parcel or use search to open a property profile.</p>
+      </div>
+
+      <div id="propertyContent" hidden>
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">PROPERTY PROFILE</p>
+            <h2 id="propertyAddress"></h2>
+            <p id="propertyLocation" class="muted"></p>
+          </div>
+          <button id="closePanel" class="icon-button" type="button" aria-label="Close property profile">×</button>
+        </div>
+
+        <div class="score-card">
+          <div>
+            <span>Development readiness</span>
+            <strong id="propertyScore"></strong>
+          </div>
+          <div class="score-track"><span id="scoreBar"></span></div>
+          <small>Demonstration score based on sample attributes</small>
+        </div>
+
+        <dl class="facts-grid">
+          <div><dt>Parcel ID</dt><dd id="parcelId"></dd></div>
+          <div><dt>Owner</dt><dd id="owner"></dd></div>
+          <div><dt>Site area</dt><dd id="siteArea"></dd></div>
+          <div><dt>Zoning</dt><dd id="zoning"></dd></div>
+          <div><dt>Future land use</dt><dd id="futureLandUse"></dd></div>
+          <div><dt>Flood risk</dt><dd id="floodRisk"></dd></div>
+          <div><dt>Water</dt><dd id="water"></dd></div>
+          <div><dt>Sewer</dt><dd id="sewer"></dd></div>
+        </dl>
+
+        <section class="panel-section">
+          <h3>Development notes</h3>
+          <ul id="notes"></ul>
+        </section>
+
+        <section class="panel-section">
+          <h3>Potential uses</h3>
+          <div id="uses" class="chips"></div>
+        </section>
+
+        <div class="panel-actions">
+          <button id="saveButton" type="button">Save property</button>
+          <button id="copyButton" class="secondary-button" type="button">Copy summary</button>
+        </div>
+
+        <p class="disclaimer">Not for legal, surveying, title, lending, appraisal, engineering, or investment decisions.</p>
+      </div>
+    </aside>
+  </main>
+
+  <dialog id="aboutDialog">
+    <div class="dialog-content">
+      <button id="closeAbout" class="icon-button dialog-close" type="button" aria-label="Close">×</button>
+      <p class="eyebrow">ABOUT</p>
+      <h2>What this version proves</h2>
+      <p>This is the first visual prototype for Develop Arkansas. It proves the user experience before expensive data engineering begins.</p>
+      <ol>
+        <li>A user can search and navigate a statewide map.</li>
+        <li>Map layers can be turned on and off.</li>
+        <li>A parcel can open a standardized property profile.</li>
+        <li>The same interface can later connect to PostGIS, county GIS services, FEMA, utilities, and planning records.</li>
+      </ol>
+    </div>
+  </dialog>
+
+  <script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
