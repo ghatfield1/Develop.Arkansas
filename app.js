@@ -1,4 +1,7 @@
-const properties = [
+const LITTLE_ROCK_ZONING_URL =
+  "https://maps.littlerock.gov/server/rest/services/Zoning_Only/MapServer/4/query";
+
+let zoningLoaded = false;const properties = [
   {
     id: "DA-1001",
     address: "1200 River Market Avenue",
@@ -148,8 +151,156 @@ const map = new maplibregl.Map({
 
 map.addControl(new maplibregl.NavigationControl(), "bottom-right");
 map.addControl(new maplibregl.ScaleControl({ unit: "imperial" }));
+async function loadLittleRockZoning() {
+  const query = new URLSearchParams({
+    where: "1=1",
+    outFields: "*",
+    returnGeometry: "true",
+    outSR: "4326",
+    f: "geojson"
+  });
 
+  try {
+    const response = await fetch(`${LITTLE_ROCK_ZONING_URL}?${query}`);
+
+    if (!response.ok) {
+      throw new Error(`Zoning request failed: ${response.status}`);
+    }
+
+    const zoningData = await response.json();
+
+    if (!zoningData.features || zoningData.features.length === 0) {
+      throw new Error("The zoning service returned no features.");
+    }
+
+    map.addSource("little-rock-zoning", {
+      type: "geojson",
+      data: zoningData,
+      generateId: true
+    });
+
+    map.addLayer({
+      id: "little-rock-zoning-fill",
+      type: "fill",
+      source: "little-rock-zoning",
+      layout: {
+        visibility: "none"
+      },
+      paint: {
+        "fill-color": [
+          "match",
+          ["coalesce", ["get", "ZONE"], ["get", "ZONING"], ""],
+
+          "R-2", "#dcefd6",
+          "R-3", "#b9dda9",
+          "R-4", "#90c77d",
+          "R-5", "#63aa58",
+
+          "C-1", "#f9df8c",
+          "C-2", "#f4c85f",
+          "C-3", "#eea940",
+          "C-4", "#e78331",
+
+          "I-1", "#d7c1e6",
+          "I-2", "#aa83c5",
+          "I-3", "#78549a",
+
+          "UU", "#d797b7",
+
+          "#c7c7c7"
+        ],
+        "fill-opacity": 0.42
+      }
+    });
+
+    map.addLayer({
+      id: "little-rock-zoning-outline",
+      type: "line",
+      source: "little-rock-zoning",
+      layout: {
+        visibility: "none"
+      },
+      paint: {
+        "line-color": "#5b5b5b",
+        "line-width": 0.7
+      }
+    });
+
+    map.on("click", "little-rock-zoning-fill", event => {
+      const feature = event.features?.[0];
+
+      if (!feature) {
+        return;
+      }
+
+      const attributes = feature.properties || {};
+
+      const zoningCode =
+        attributes.ZONE ||
+        attributes.ZONING ||
+        attributes.Zone ||
+        attributes.Zoning ||
+        "Zoning classification unavailable";
+
+      new maplibregl.Popup()
+        .setLngLat(event.lngLat)
+        .setHTML(`
+          <strong>Little Rock zoning</strong>
+          <br>
+          ${escapeHtml(String(zoningCode))}
+          <br>
+          <small>Verify against the City's official zoning map.</small>
+        `)
+        .addTo(map);
+    });
+
+    map.on("mouseenter", "little-rock-zoning-fill", () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+
+    map.on("mouseleave", "little-rock-zoning-fill", () => {
+      map.getCanvas().style.cursor = "";
+    });
+
+    zoningLoaded = true;
+    console.log(
+      `Loaded ${zoningData.features.length.toLocaleString()} zoning features.`
+    );
+  } catch (error) {
+    console.error("Unable to load Little Rock zoning:", error);
+    showMapError(
+      "The Little Rock zoning layer could not be loaded. Try refreshing the page."
+    );
+  }
+}
+
+function escapeHtml(value) {
+  return value.replace(/[&<>"']/g, character => {
+    const entities = {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
+    };
+
+    return entities[character];
+  });
+}
+
+function showMapError(message) {
+  const errorBox = document.createElement("div");
+  errorBox.className = "map-error";
+  errorBox.textContent = message;
+
+  document.querySelector(".map-wrap").appendChild(errorBox);
+
+  window.setTimeout(() => {
+    errorBox.remove();
+  }, 8000);
+}
 map.on("load", () => {
+  loadLittleRockZoning();
   map.addSource("parcels", { type: "geojson", data: parcelsGeoJSON });
   map.addLayer({
     id: "parcel-fill",
